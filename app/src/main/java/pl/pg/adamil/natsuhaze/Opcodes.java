@@ -1,5 +1,7 @@
 package pl.pg.adamil.natsuhaze;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -61,10 +63,13 @@ public class Opcodes {
             cpu.PC.inc();
             byte high = cpu.readByte(cpu.PC.intValue());
             cpu.PC.inc();
-            short word = (short) ((short) (high << 8) + (short)(low & 0x00FF));
-            cpu.writeByte(word, cpu.SP.getLow());
-            word = (short) (word + 1);
-            cpu.writeByte(word, cpu.SP.getHigh());
+            Log.i("HIGH:", Integer.toHexString(high));
+            Log.i("LOW:", Integer.toHexString(low));
+            int address = ((high << 8)  + (low & 0x00FF)) & 0xFFFF;
+            Log.i("ADDRESS:", Integer.toHexString(address));
+            cpu.writeByte(address, cpu.SP.getLow());
+            address += 1;
+            cpu.writeByte(address, cpu.SP.getHigh());
         });
 
         opcode.put((byte) 0x09, () -> {
@@ -299,7 +304,7 @@ public class Opcodes {
             cpu.writeByte(cpu.HL.intValue(), (byte) (cpu.readByte(cpu.HL.intValue()) - 1));
         });
 
-        opcode.put((byte) 0x26, () -> {
+        opcode.put((byte) 0x36, () -> {
             // LD (HL), u8
             cpu.writeByte(cpu.HL.intValue(), cpu.readByte(cpu.PC.intValue()));
             cpu.PC.inc();
@@ -392,42 +397,370 @@ public class Opcodes {
 
         opcode.put((byte) 0x48, () -> {
             // LD C,B
-
+            cpu.BC.setLow(cpu.BC.getHigh());
         });
 
         opcode.put((byte) 0x49, () -> {
             // LD C,C
-
+            cpu.BC.setLow(cpu.BC.getLow());
         });
 
         opcode.put((byte) 0x4A, () -> {
             // LD C,D
-
+            cpu.BC.setLow(cpu.DE.getHigh());
         });
 
         opcode.put((byte) 0x4B, () -> {
             // LD C,E
-
+            cpu.BC.setLow(cpu.DE.getLow());
         });
 
         opcode.put((byte) 0x4C, () -> {
             // LD C,H
-
+            cpu.BC.setLow(cpu.HL.getHigh());
         });
 
         opcode.put((byte) 0x4D, () -> {
             // LD C,L
-
+            cpu.BC.setLow(cpu.HL.getLow());
         });
 
         opcode.put((byte) 0x4E, () -> {
             // LD C,(HL)
-
+            cpu.BC.setLow(cpu.readByte(cpu.HL.intValue()));
         });
 
         opcode.put((byte) 0x4F, () -> {
             // LD C,A
+            cpu.BC.setLow(cpu.AF.getHigh());
+        });
 
+        opcode.put((byte) 0x50, () -> {
+            // LD D,B
+            cpu.DE.setHigh(cpu.BC.getHigh());
+        });
+
+        opcode.put((byte) 0x51, () -> {
+            // LD D,C
+            cpu.DE.setHigh(cpu.BC.getLow());
+        });
+
+        opcode.put((byte) 0x52, () -> {
+            // LD D,D
+            cpu.DE.setHigh(cpu.DE.getHigh());
+        });
+
+        opcode.put((byte) 0x53, () -> {
+            // LD D,E
+            cpu.DE.setHigh(cpu.DE.getLow());
+        });
+
+        opcode.put((byte) 0x54, () -> {
+            // LD D,H
+            cpu.DE.setHigh(cpu.HL.getHigh());
+        });
+
+        opcode.put((byte) 0x55, () -> {
+            // LD D,L
+            cpu.DE.setHigh(cpu.HL.getLow());
+        });
+
+        opcode.put((byte) 0x56, () -> {
+            // LD D,(HL)
+            cpu.DE.setHigh(cpu.readByte(cpu.HL.intValue()));
+        });
+
+        opcode.put((byte) 0x57, () -> {
+            // LD D,A
+            cpu.DE.setHigh(cpu.AF.getHigh());
+        });
+
+        opcode.put((byte) 0x58, () -> {
+            // LD E,B
+            cpu.DE.setLow(cpu.BC.getHigh());
+        });
+
+        opcode.put((byte) 0x59, () -> {
+            // LD E,C
+            cpu.DE.setLow(cpu.BC.getLow());
+        });
+
+        opcode.put((byte) 0x5A, () -> {
+            // LD E,D
+            cpu.DE.setLow(cpu.DE.getHigh());
+        });
+
+        opcode.put((byte) 0x5B, () -> {
+            // LD E,E
+            cpu.DE.setLow(cpu.DE.getLow());
+        });
+
+        opcode.put((byte) 0x5C, () -> {
+            // LD E,H
+            cpu.DE.setLow(cpu.HL.getHigh());
+        });
+
+        opcode.put((byte) 0x5D, () -> {
+            // LD E,L
+            cpu.DE.setLow(cpu.HL.getLow());
+        });
+
+        opcode.put((byte) 0x5E, () -> {
+            // LD E,(HL)
+            cpu.DE.setLow(cpu.readByte(cpu.HL.intValue()));
+        });
+
+        opcode.put((byte) 0x5F, () -> {
+            // LD E,A
+            cpu.DE.setLow(cpu.AF.getHigh());
+        });
+
+        opcode.put((byte) 0x60, () -> {
+            // LD H,B
+            cpu.HL.setHigh(cpu.BC.getHigh());
+        });
+
+        opcode.put((byte) 0x61, () -> {
+            // LD H,C
+            cpu.HL.setHigh(cpu.BC.getLow());
+        });
+
+        opcode.put((byte) 0x62, () -> {
+            // LD H,D
+            cpu.HL.setHigh(cpu.DE.getHigh());
+        });
+
+        opcode.put((byte) 0x63, () -> {
+            // LD H,E
+            cpu.HL.setHigh(cpu.DE.getLow());
+        });
+
+        opcode.put((byte) 0x64, () -> {
+            // LD H,H
+            cpu.HL.setHigh(cpu.HL.getHigh());
+        });
+
+        opcode.put((byte) 0x65, () -> {
+            // LD H,L
+            cpu.HL.setHigh(cpu.HL.getLow());
+        });
+
+        opcode.put((byte) 0x66, () -> {
+            // LD H,(HL)
+            cpu.HL.setHigh(cpu.readByte(cpu.HL.intValue()));
+        });
+
+        opcode.put((byte) 0x67, () -> {
+            // LD H,A
+            cpu.HL.setHigh(cpu.AF.getHigh());
+        });
+
+        opcode.put((byte) 0x68, () -> {
+            // LD L,B
+            cpu.HL.setLow(cpu.BC.getHigh());
+        });
+
+        opcode.put((byte) 0x69, () -> {
+            // LD L,C
+            cpu.HL.setLow(cpu.BC.getLow());
+        });
+
+        opcode.put((byte) 0x6A, () -> {
+            // LD L,D
+            cpu.HL.setLow(cpu.DE.getHigh());
+        });
+
+        opcode.put((byte) 0x6B, () -> {
+            // LD L,E
+            cpu.HL.setLow(cpu.DE.getLow());
+        });
+
+        opcode.put((byte) 0x6C, () -> {
+            // LD L,H
+            cpu.HL.setLow(cpu.HL.getHigh());
+        });
+
+        opcode.put((byte) 0x6D, () -> {
+            // LD L,L
+            cpu.HL.setLow(cpu.HL.getLow());
+        });
+
+        opcode.put((byte) 0x6E, () -> {
+            // LD L,(HL)
+            cpu.HL.setLow(cpu.readByte(cpu.HL.intValue()));
+        });
+
+        opcode.put((byte) 0x6F, () -> {
+            // LD L,A
+            cpu.HL.setLow(cpu.AF.getHigh());
+        });
+
+        opcode.put((byte) 0x70, () -> {
+            // LD (HL),B
+            cpu.writeByte(cpu.HL.intValue(), cpu.BC.getHigh());
+        });
+
+        opcode.put((byte) 0x71, () -> {
+            // LD (HL),C
+            cpu.writeByte(cpu.HL.intValue(), cpu.BC.getLow());
+        });
+
+        opcode.put((byte) 0x72, () -> {
+            // LD (HL),D
+            cpu.writeByte(cpu.HL.intValue(), cpu.DE.getHigh());
+        });
+
+        opcode.put((byte) 0x73, () -> {
+            // LD (HL),E
+            cpu.writeByte(cpu.HL.intValue(), cpu.DE.getLow());
+        });
+
+        opcode.put((byte) 0x74, () -> {
+            // LD (HL),H
+            cpu.writeByte(cpu.HL.intValue(), cpu.HL.getHigh());
+        });
+
+        opcode.put((byte) 0x75, () -> {
+            // LD (HL),L
+            cpu.writeByte(cpu.HL.intValue(), cpu.HL.getLow());
+        });
+
+        opcode.put((byte) 0x76, () -> {
+            // HALT
+
+        });
+
+        opcode.put((byte) 0x77, () -> {
+            // LD (HL),A
+            cpu.HL.setHigh(cpu.AF.getHigh());
+        });
+
+        opcode.put((byte) 0x78, () -> {
+            // LD A,B
+            cpu.AF.setHigh(cpu.BC.getHigh());
+        });
+
+        opcode.put((byte) 0x79, () -> {
+            // LD A,C
+            cpu.AF.setHigh(cpu.BC.getLow());
+        });
+
+        opcode.put((byte) 0x7A, () -> {
+            // LD A,D
+            cpu.AF.setHigh(cpu.DE.getHigh());
+        });
+
+        opcode.put((byte) 0x7B, () -> {
+            // LD A,E
+            cpu.AF.setHigh(cpu.DE.getLow());
+        });
+
+        opcode.put((byte) 0x7C, () -> {
+            // LD A,H
+            cpu.AF.setHigh(cpu.HL.getHigh());
+        });
+
+        opcode.put((byte) 0x7D, () -> {
+            // LD A,L
+            cpu.AF.setHigh(cpu.HL.getLow());
+        });
+
+        opcode.put((byte) 0x7E, () -> {
+            // LD A,(HL)
+            cpu.AF.setHigh(cpu.readByte(cpu.HL.intValue()));
+        });
+
+        opcode.put((byte) 0x7F, () -> {
+            // LD A,A
+            cpu.AF.setHigh(cpu.AF.getHigh());
+        });
+
+        opcode.put((byte) 0x80, () -> {
+            // ADD A,B
+            int A = cpu.AF.getHigh() + cpu.BC.getHigh();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0x81, () -> {
+            // ADD A,C
+            int A = cpu.AF.getHigh() + cpu.BC.getLow();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));;
+        });
+
+        opcode.put((byte) 0x82, () -> {
+            // ADD A,D
+            int A = cpu.AF.getHigh() + cpu.DE.getHigh();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0x83, () -> {
+            // ADD A,E
+            int A = cpu.AF.getHigh() + cpu.DE.getLow();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0x84, () -> {
+            // ADD A,H
+            int A = cpu.AF.getHigh() + cpu.HL.getHigh();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0x85, () -> {
+            // ADD A,L
+            int A = cpu.AF.getHigh() + cpu.HL.getLow();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0x86, () -> {
+            // ADD A,(HL)
+            int A = cpu.AF.getHigh() + cpu.readByte(cpu.HL.intValue());
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0x87, () -> {
+            // ADD A,A
+            int A = cpu.AF.getHigh() + cpu.AF.getHigh();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xC2, () -> {
@@ -454,16 +787,44 @@ public class Opcodes {
             cpu.PC.setLow(low);
         });
 
+        opcode.put((byte) 0xC1, () -> {
+            // POP BC
+        });
+
         opcode.put((byte) 0xC5, () -> {
             // PUSH BC
+        });
+
+        opcode.put((byte) 0xC6, () -> {
+            // ADD A,u8
+            int A = cpu.AF.getHigh() + cpu.readByte(cpu.PC.intValue());
+            cpu.PC.inc();
+            if (A != (A & 0xFF)) { // overflow
+                byte flags = cpu.AF.getLow();
+                flags |= 1 << 4; //set carry
+                cpu.AF.setLow(flags);
+            }
+            cpu.AF.setHigh((byte) (A & 0xFF));
+        });
+
+        opcode.put((byte) 0xD1, () -> {
+            // POP DE
         });
 
         opcode.put((byte) 0xD5, () -> {
             // PUSH DE
         });
 
+        opcode.put((byte) 0xE1, () -> {
+            // POP HL
+        });
+
         opcode.put((byte) 0xE5, () -> {
             // PUSH HL
+        });
+
+        opcode.put((byte) 0xF1, () -> {
+            // POP AF
         });
 
         opcode.put((byte) 0xF5, () -> {
