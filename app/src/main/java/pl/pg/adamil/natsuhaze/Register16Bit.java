@@ -37,13 +37,13 @@ public class Register16Bit extends Number implements Comparable<Short> {
     }
 
     public void addHigh(Byte b) {
-        byte high = (byte) ((byte) (value >>> 8) + b);
-        value = (short) ((short) (high << 8) + (value & 0x00FF));
+        byte high = (byte) ((byte) (value >>> 8) + (b & 0xFF));
+        value = (short) ((short) ((high & 0xFF) << 8) + (value & 0x00FF));
     }
 
     public void addLow(Byte b) {
-        byte low = (byte) ((byte) (value & 0x00FF) + b);
-        value = (short) ((short) (value & 0xFF00) + (short) low);
+        byte low = (byte) ((byte) (value & 0x00FF) + (b & 0xFF));
+        value = (short) ((short) (value & 0xFF00) + (short) (low & 0xFF));
     }
 
     public void sub(Short s) {
@@ -52,12 +52,12 @@ public class Register16Bit extends Number implements Comparable<Short> {
 
     public void subHigh(Byte b) {
         byte high = (byte) ((byte) (value >>> 8) - b);
-        value = (short) ((short) (high << 8) + (value & 0x00FF));
+        value = (short) ((short) ((high & 0xFF) << 8) + (value & 0x00FF));
     }
 
     public void subLow(Byte b) {
         byte low = (byte) ((byte) (value & 0x00FF) - b);
-        value = (short) ((short) (value & 0xFF00) + (short) low);
+        value = (short) ((short) (value & 0xFF00) + (short) (low & 0xFF));
     }
 
     public void set(Short s) {
@@ -65,11 +65,11 @@ public class Register16Bit extends Number implements Comparable<Short> {
     }
 
     public void setHigh(Byte high) {
-        value = (short) ((short) (high << 8) + (value & 0x00FF));
+        value = (short) ((short) ((high & 0xFF) << 8) + (value & 0x00FF));
     }
 
     public void setLow(Byte low) {
-        value = (short) ((short) (value & 0xFF00) + (short) low);
+        value = (short) ((short) (value & 0xFF00) + (short) (low & 0xFF));
     }
 
     public void inc() {
