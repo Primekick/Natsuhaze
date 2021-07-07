@@ -1,6 +1,11 @@
 package pl.pg.adamil.natsuhaze;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
 
 public class NatsuhazeCore {
 
@@ -24,9 +29,13 @@ public class NatsuhazeCore {
         screen = new Screen(main);
         gpu = new GPU(screen);
         cpu = new CPU(this, gpu);
+        cart = new Cartridge(cpu);
+        cart.loadRom();
         screen.init();
         gpu.init();
         cpu.init();
+        cpu.loadCart(cart);
+        screen.setText(cpu.getGameTitle());
         isRunning = true;
     }
 
@@ -43,9 +52,9 @@ public class NatsuhazeCore {
     }
 
     public void mainLoop() {
-        if(isRunning) {
+        while(isRunning) {
             if(!isPaused && cart.isCartLoaded()) {
-
+                cpu.step();
             }
         }
     }

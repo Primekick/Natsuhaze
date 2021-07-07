@@ -80,13 +80,13 @@ public class Register16Bit extends Number implements Comparable<Short> {
         value -= 1;
     }
 
-    public Short getHigh() {
+    public byte getHigh() {
         int i = value >>> 8; // unsigned shift
-        return (short) i;
+        return (byte) i;
     }
 
-    public Short getLow() {
+    public byte getLow() {
         int i =  value & 0x00FF;
-        return (short) i;
+        return (byte) i;
     }
 }
