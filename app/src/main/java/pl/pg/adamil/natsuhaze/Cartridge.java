@@ -1,7 +1,9 @@
 package pl.pg.adamil.natsuhaze;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
@@ -14,13 +16,12 @@ import java.util.Arrays;
 
 public class Cartridge {
 
-    private CPU cpu;
-
     private boolean isLoaded;
     private byte[] rom;
+    private String filePath;
 
-    public Cartridge(CPU cpu) {
-        this.cpu = cpu;
+    public Cartridge(String filePath) {
+        this.filePath = filePath;
         isLoaded = false;
         rom = new byte[32 * 1024];
     }
@@ -30,10 +31,10 @@ public class Cartridge {
     }
 
     public void loadRom() {
-        String path = Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                + "/testrom.gb";
-        File file = new File(path);
+        // Environment
+        //        .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        //        + "/testrom2.gb";
+        File file = new File(filePath);
         int size = (int) file.length();
         try {
             BufferedInputStream buf = new BufferedInputStream(new FileInputStream(file));

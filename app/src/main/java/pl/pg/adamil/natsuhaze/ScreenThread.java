@@ -25,24 +25,32 @@ public class ScreenThread extends Thread {
 
     @Override
     public void run() {
-        boolean locked = false;
-        Canvas canvas;
-        while(isRunning) {
-            canvas = null;
-
-            if(!locked) {
-                canvas = surfaceHolder.lockCanvas();
-                synchronized (surfaceHolder) {
-                    screen.update();
-                    screen.draw(canvas);
+        synchronized (this) {
+            boolean locked = false;
+            Canvas canvas;
+            while(isRunning) {
+                canvas = null;
+                try {
+                    canvas = surfaceHolder.lockCanvas();
+                    if (canvas != null) {
+                        screen.draw(canvas);
+                    }
                 }
-                locked = true;
-            }
-
-            if(locked) {
-                surfaceHolder.unlockCanvasAndPost(canvas);
-                locked = false;
+                catch (IllegalStateException e) {
+                    e.printStackTrace();
+                }
+                finally {
+                    try {
+                        if(canvas != null) {
+                            surfaceHolder.unlockCanvasAndPost(canvas);
+                        }
+                    }
+                    catch (IllegalStateException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
+
     }
 }

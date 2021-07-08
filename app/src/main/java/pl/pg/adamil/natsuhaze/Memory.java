@@ -9,10 +9,12 @@ public class Memory {
     private GPU gpu;
 
     private byte[] data;
+    private byte[] wram;
     private byte serialByte;
 
     public Memory(CPU cpu, GPU gpu) {
         data = new byte[64 * 1024];
+        wram = new byte[8 * 1024];
         this.cpu = cpu;
         this.gpu = gpu;
     }
@@ -51,11 +53,11 @@ public class Memory {
             // Working RAM (8k)
             case 0xC000:
             case 0xD000:
-                break; // address & 0x1FFF;
+                return wram[address & 0x1FFF];
 
             // Working RAM echo
             case 0xE000:
-                break; // address & 0x1FFF;
+                return wram[address & 0x1FFF];
 
             // Working RAM echo, I/O, Zero-page RAM
             case 0xF000:
@@ -66,7 +68,7 @@ public class Memory {
                     case 0x400: case 0x500: case 0x600: case 0x700:
                     case 0x800: case 0x900: case 0xA00: case 0xB00:
                     case 0xC00: case 0xD00:
-                    break; // address & 0x1FFF;
+                        return wram[address & 0x1FFF];
 
                     // Graphics: object attribute memory
                     // OAM is 160 bytes, remaining bytes read as 0
@@ -82,10 +84,12 @@ public class Memory {
                         {
                             return data[address];// zram[addr & 0x7F];
                         }
-                        else
+                        else if(address >= 0xFF40 && address <= 0xFF47)
                         {
+                            // I/O ports for gpu
+                            return gpu.read(address & 0x0F);
+                        } else {
                             // I/O ports
-                            return gpu.read(address & 0xFF);
                         }
                 }
         }
@@ -130,17 +134,37 @@ public class Memory {
             // Working RAM (8k)
             case 0xC000:
             case 0xD000:
-                data[address] = b;
+                wram[address & 0x1FFF] = b;
                 break; // address & 0x1FFF;
 
             // Working RAM echo
             case 0xE000:
-                data[address] = b;
+                wram[address & 0x1FFF] = b;
                 break; // address & 0x1FFF;
 
             case 0xF000:
                 switch(address & 0x0F00) {
+                    // Working RAM echo
+                    case 0x000: case 0x100: case 0x200: case 0x300:
+                    case 0x400: case 0x500: case 0x600: case 0x700:
+                    case 0x800: case 0x900: case 0xA00: case 0xB00:
+                    case 0xC00: case 0xD00:
+                        wram[address & 0x1FFF] = b;
+                        break;
+
+                    // Graphics: object attribute memory
+                    // OAM is 160 bytes, remaining bytes read as 0
+                    case 0xE00:
+                        if(address < 0xFEA0) {
+                            gpu.writeOam(address & 0xFF, b);
+                            break;
+                        } else
+                            break;
+
+                        // Zero-page
+
                     case 0xF00:
+
                         if(address >= 0xFF80)
                         {
                             data[address] = b;
@@ -149,7 +173,7 @@ public class Memory {
                         else if(address >= 0xFF40 && address <= 0xFF47)
                         {
                             // I/O ports for gpu
-                            gpu.write(address & 0xFF, b);
+                            gpu.write(address & 0x0F, b);
                         } else {
                             // I/O ports
 
@@ -160,7 +184,8 @@ public class Memory {
         }
     }
 
-    public void writeWord(int address, Short s) {
-
+    public void writeWord(int address, Short high, Short low) {
+        writeByte(address, low.byteValue());
+        writeByte(address + 1, high.byteValue());
     }
 }

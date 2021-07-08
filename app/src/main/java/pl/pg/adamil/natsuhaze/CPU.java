@@ -17,6 +17,9 @@ public class CPU {
     public Register16Bit SP; // Stack Pointer
     public Register16Bit PC; // Program Counter/Pointer
 
+    public Register16Bit scx;
+    public Register16Bit scy;
+
     public enum Flags {
         ZERO, ADDSUB, HALFCARRY, CARRY
     }
@@ -31,12 +34,15 @@ public class CPU {
         memory = new Memory(this, gpu);
         opcodes = new Opcodes(this);
         opcodes.init();
-        AF = new Register16Bit((short) 0x0000);
-        BC = new Register16Bit((short) 0x0000);
-        DE = new Register16Bit((short) 0x0000);
-        HL = new Register16Bit((short) 0x0000);
+        //below are the register values right after executing bootrom
+        scx = new Register16Bit((short) 0);
+        scy = new Register16Bit((short) 0);
+        AF = new Register16Bit((short) 0x01B0);
+        BC = new Register16Bit((short) 0x0013);
+        DE = new Register16Bit((short) 0x00D8);
+        HL = new Register16Bit((short) 0x014D);
         SP = new Register16Bit((short) 0xFFFE); // stack pointer start
-        PC = new Register16Bit((short) 0x0100); // boot roms start at 0x0000, otherwise 0x1000
+        PC = new Register16Bit((short) 0x0100); // cartridges boot from 0x0100
     }
 
     public void loadCart(Cartridge cart) {
@@ -53,15 +59,37 @@ public class CPU {
     }
 
     public int getFlag(Flags flag) {
-        byte A = AF.getHigh();
+        byte F = AF.getLow();
         switch(flag) {
             case ZERO:
-                return (A & 128); // 7th bit
+                return (F >>> 7) & 1; // 7th bit
             case CARRY:
-                return (A & 16); // 4th bit
+                return (F >>> 4) & 1; // 4th bit
             default:
                 return 0;
         }
+    }
+
+    public void setFlag(Flags flag) {
+        int F = AF.getLow();
+        switch(flag) {
+            case ZERO:
+                F |= 1 << 7; // 7th bit
+            case CARRY:
+                F |= 1 << 4; // 4th bit
+        }
+        AF.setLow((byte) (F & 0xFF));
+    }
+
+    public void unsetFlag(Flags flag) {
+        int F = AF.getLow();
+        switch(flag) {
+            case ZERO:
+                F &= ~(1 << 7); // 7th bit
+            case CARRY:
+                F &= ~(1 << 4); // 4th bit
+        }
+        AF.setLow((byte) (F & 0xFF));
     }
 
     public byte readByte(int address) {
@@ -74,17 +102,23 @@ public class CPU {
 
     public void step() {
         byte opcode = memory.readByte(PC.intValue());
-        Log.i("Opcode", Integer.toHexString(opcode).substring(0, 2));
-        Log.i("PC", Integer.toHexString(PC.intValue()));
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        //Log.i("Opcode", Integer.toHexString(opcode));
+        //Log.i("PC", Integer.toHexString(PC.intValue()));
         PC.inc();
         Runnable code = opcodes.fetch(opcode);
         if(code != null)
             code.run();
+        code = null;
+        scx.set((short) gpu.scx);
+        scy.set((short) gpu.scy);
+        gpu.getScreen().setReg("AF", AF);
+        gpu.getScreen().setReg("BC", BC);
+        gpu.getScreen().setReg("DE", DE);
+        gpu.getScreen().setReg("HL", HL);
+        gpu.getScreen().setReg("SP", SP);
+        gpu.getScreen().setReg("PC", PC);
+        gpu.getScreen().setReg("scx", scy);
+        gpu.getScreen().setReg("scy", scx);
     }
 
     public void requestInterrupt(InterruptType iType) {

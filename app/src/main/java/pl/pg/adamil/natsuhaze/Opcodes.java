@@ -1,10 +1,6 @@
 package pl.pg.adamil.natsuhaze;
 
-import android.util.Log;
-
 import java.util.HashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class Opcodes {
     private HashMap<Byte, Runnable> opcode = new HashMap<Byte, Runnable>();
@@ -78,10 +74,7 @@ public class Opcodes {
             cpu.PC.inc();
             byte high = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.PC.inc();
-            Log.i("HIGH:", Integer.toHexString(high));
-            Log.i("LOW:", Integer.toHexString(low));
             int address = ((high << 8)  + (low & 0x00FF)) & 0xFFFF;
-            Log.i("ADDRESS:", Integer.toHexString(address));
             cpu.writeByte(address, cpu.SP.getLow());
             address += 1;
             cpu.writeByte(address, cpu.SP.getHigh());
@@ -120,7 +113,7 @@ public class Opcodes {
         opcode.put((byte) 0x0D, () -> {
             // DEC C
             cpu.BC.subLow((byte) 1);
-            if (cpu.BC.getHigh() == 0) {
+            if (cpu.BC.getLow() == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
@@ -274,12 +267,10 @@ public class Opcodes {
 
         opcode.put((byte) 0x20, () -> {
             // JR NZ, i8
-            Log.i("ZF: ", "" + cpu.getFlag(CPU.Flags.ZERO));
             if(cpu.getFlag(CPU.Flags.ZERO) > 0) {
                 cpu.PC.inc();
             } else {
                 byte i8 = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
-                Log.i("Read value: ", "INT: " + i8 + "HEX: " + Integer.toHexString(i8 & 0xFF));
                 cpu.PC.inc();
                 cpu.PC.set((short) (cpu.PC.shortValue() + i8));
             }
@@ -853,14 +844,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.BC.getHigh();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x81, () -> {
@@ -868,14 +861,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.BC.getLow();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x82, () -> {
@@ -883,14 +878,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.DE.getHigh();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x83, () -> {
@@ -898,14 +895,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.DE.getLow();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x84, () -> {
@@ -913,14 +912,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.HL.getHigh();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x85, () -> {
@@ -928,14 +929,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.HL.getLow();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x86, () -> {
@@ -943,14 +946,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.readByte(cpu.HL.intValue() & 0xFFFF);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x87, () -> {
@@ -958,14 +963,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.AF.getHigh();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x88, () -> {
@@ -973,14 +980,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.BC.getHigh() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x89, () -> {
@@ -988,14 +997,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.BC.getLow() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x8A, () -> {
@@ -1003,14 +1014,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.DE.getHigh() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x8B, () -> {
@@ -1018,14 +1031,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.DE.getLow() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x8C, () -> {
@@ -1033,14 +1048,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.HL.getHigh() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x8D, () -> {
@@ -1048,14 +1065,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.HL.getLow() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x8E, () -> {
@@ -1063,14 +1082,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.readByte(cpu.HL.intValue() & 0xFFFF) + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x8F, () -> {
@@ -1078,14 +1099,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() + cpu.AF.getHigh() + cpu.getFlag(CPU.Flags.CARRY);
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x90, () -> {
@@ -1093,14 +1116,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.BC.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x91, () -> {
@@ -1108,14 +1133,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.BC.getLow();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x92, () -> {
@@ -1123,14 +1150,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.DE.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x93, () -> {
@@ -1138,14 +1167,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.DE.getLow();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x94, () -> {
@@ -1153,14 +1184,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.HL.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x95, () -> {
@@ -1168,14 +1201,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.HL.getLow();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x96, () -> {
@@ -1183,14 +1218,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.readByte(cpu.HL.intValue() & 0xFFFF);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x97, () -> {
@@ -1198,14 +1235,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.AF.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x98, () -> {
@@ -1213,14 +1252,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.BC.getHigh() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x99, () -> {
@@ -1228,14 +1269,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.BC.getLow() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x9A, () -> {
@@ -1243,14 +1286,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.DE.getHigh() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x9B, () -> {
@@ -1258,14 +1303,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.DE.getLow() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x9C, () -> {
@@ -1273,14 +1320,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.HL.getHigh() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x9D, () -> {
@@ -1288,14 +1337,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.HL.getLow() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x9E, () -> {
@@ -1303,14 +1354,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.readByte(cpu.HL.intValue() & 0xFFFF) - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0x9F, () -> {
@@ -1318,14 +1371,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.AF.getHigh() - cpu.getFlag(CPU.Flags.CARRY);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA0, () -> {
@@ -1338,6 +1393,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA1, () -> {
@@ -1350,6 +1406,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA2, () -> {
@@ -1362,6 +1419,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA3, () -> {
@@ -1374,6 +1432,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA4, () -> {
@@ -1386,6 +1445,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA5, () -> {
@@ -1398,6 +1458,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA6, () -> {
@@ -1410,6 +1471,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA7, () -> {
@@ -1422,6 +1484,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA8, () -> {
@@ -1434,6 +1497,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xA9, () -> {
@@ -1446,6 +1510,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xAA, () -> {
@@ -1458,6 +1523,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xAB, () -> {
@@ -1470,6 +1536,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xAC, () -> {
@@ -1482,6 +1549,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xAD, () -> {
@@ -1494,6 +1562,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xAE, () -> {
@@ -1506,6 +1575,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xAF, () -> {
@@ -1518,6 +1588,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB0, () -> {
@@ -1529,6 +1600,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB1, () -> {
@@ -1541,6 +1613,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB2, () -> {
@@ -1553,6 +1626,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB3, () -> {
@@ -1565,6 +1639,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB4, () -> {
@@ -1577,6 +1652,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB5, () -> {
@@ -1589,6 +1665,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB6, () -> {
@@ -1601,6 +1678,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB7, () -> {
@@ -1613,6 +1691,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xB8, () -> {
@@ -1620,7 +1699,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.BC.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1635,7 +1716,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.BC.getLow();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1650,7 +1733,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.DE.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1665,7 +1750,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.DE.getLow();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1680,7 +1767,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.HL.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1695,7 +1784,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.HL.getLow();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1710,7 +1801,9 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.readByte(cpu.HL.intValue() & 0xFFFF);
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
@@ -1725,7 +1818,7 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.AF.getHigh();
             
             if (A < 0) { // underflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
             } else {
                 cpu.unsetFlag(CPU.Flags.CARRY);
             }
@@ -1821,14 +1914,16 @@ public class Opcodes {
             cpu.PC.inc();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xC7, () -> {
@@ -1927,14 +2022,16 @@ public class Opcodes {
             cpu.PC.inc();
             
             if (A != (A & 0xFF)) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xCF, () -> {
@@ -2025,15 +2122,17 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.PC.inc();
             
-            if (A < 0) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+            if (A != (A & 0xFF)) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xD7, () -> {
@@ -2119,15 +2218,17 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.readByte(cpu.PC.intValue() & 0xFFFF) - cpu.getFlag(CPU.Flags.CARRY);
             cpu.PC.inc();
             
-            if (A < 0) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+            if (A != (A & 0xFF)) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-            
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xDF, () -> {
@@ -2192,6 +2293,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xE7, () -> {
@@ -2226,10 +2328,7 @@ public class Opcodes {
             cpu.PC.inc();
             byte high = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.PC.inc();
-            Log.i("HIGH:", Integer.toHexString(high));
-            Log.i("LOW:", Integer.toHexString(low));
             int address = ((high << 8)  + (low & 0x00FF)) & 0xFFFF;
-            Log.i("ADDRESS:", Integer.toHexString(address));
             cpu.writeByte(address, cpu.AF.getHigh());
         });
 
@@ -2255,6 +2354,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xEF, () -> {
@@ -2270,7 +2370,8 @@ public class Opcodes {
 
         opcode.put((byte) 0xF0, () -> {
             // LD A,(FF00+u8)
-            byte A = cpu.readByte(0xFF00 + cpu.readByte(cpu.PC.intValue() & 0xFFFF));
+            int address = 0xFF00 + (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
+            byte A = cpu.readByte(address);
             cpu.PC.inc();
             cpu.AF.setHigh(A);
         });
@@ -2287,7 +2388,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xF2, () -> {
             // LD A,(FF00+C)
-            byte A = cpu.readByte(0xFF00 + cpu.PC.getLow());
+            byte A = cpu.readByte(0xFF00 + cpu.BC.getLow() & 0xFF);
             cpu.AF.setHigh(A);
         });
 
@@ -2320,6 +2421,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
             cpu.unsetFlag(CPU.Flags.CARRY);
+            cpu.AF.setHigh((byte) (A & 0xFF));
         });
 
         opcode.put((byte) 0xF7, () -> {
@@ -2352,6 +2454,7 @@ public class Opcodes {
             int low = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.PC.inc();
             int high = cpu.readByte(cpu.PC.intValue() & 0xFFFF) << 8;
+            cpu.PC.inc();
             byte A = cpu.readByte((high + low) & 0xFFFF);
             cpu.AF.setHigh(A);
         });
@@ -2374,15 +2477,16 @@ public class Opcodes {
             int A = cpu.AF.getHigh() - cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.PC.inc();
             
-            if (A < 0) { // overflow
-                cpu.setFlag(CPU.Flags.CARRY); //set carry
+            if (A != (A & 0xFF)) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
             }
             if ((A & 0xFF) == 0) {
                 cpu.setFlag(CPU.Flags.ZERO);
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-
         });
 
         opcode.put((byte) 0xFF, () -> {
