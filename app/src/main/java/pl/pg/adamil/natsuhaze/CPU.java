@@ -1,7 +1,5 @@
 package pl.pg.adamil.natsuhaze;
 
-import android.util.Log;
-
 public class CPU {
 
     private NatsuhazeCore core;
@@ -10,15 +8,15 @@ public class CPU {
     private Memory memory;
     private Opcodes opcodes;
 
-    public Register16Bit AF; // Accumulator & Flags
-    public Register16Bit BC; // reg B + C
-    public Register16Bit DE; // reg D + E
-    public Register16Bit HL; // reg H + L
-    public Register16Bit SP; // Stack Pointer
-    public Register16Bit PC; // Program Counter/Pointer
+    private Register16Bit AF; // Accumulator & Flags
+    private Register16Bit BC; // reg B + C
+    private Register16Bit DE; // reg D + E
+    private Register16Bit HL; // reg H + L
+    private Register16Bit SP; // Stack Pointer
+    private Register16Bit PC; // Program Counter/Pointer
 
-    public Register16Bit scx;
-    public Register16Bit scy;
+    private Register16Bit scx;
+    private Register16Bit scy;
 
     public enum Flags {
         ZERO, ADDSUB, HALFCARRY, CARRY
@@ -35,14 +33,23 @@ public class CPU {
         opcodes = new Opcodes(this);
         opcodes.init();
         //below are the register values right after executing bootrom
-        scx = new Register16Bit((short) 0);
-        scy = new Register16Bit((short) 0);
-        AF = new Register16Bit((short) 0x01B0);
-        BC = new Register16Bit((short) 0x0013);
-        DE = new Register16Bit((short) 0x00D8);
-        HL = new Register16Bit((short) 0x014D);
-        SP = new Register16Bit((short) 0xFFFE); // stack pointer start
-        PC = new Register16Bit((short) 0x0100); // cartridges boot from 0x0100
+        setScx(new Register16Bit((short) 0));
+        setScy(new Register16Bit((short) 0));
+        setAF(new Register16Bit((short) 0x01B0));
+        setBC(new Register16Bit((short) 0x0013));
+        setDE(new Register16Bit((short) 0x00D8));
+        setHL(new Register16Bit((short) 0x014D));
+        setSP(new Register16Bit((short) 0xFFFE)); // stack pointer start
+        setPC(new Register16Bit((short) 0x0100)); // cartridges boot from 0x0100
+
+        gpu.getScreen().setReg("AF", getAF());
+        gpu.getScreen().setReg("BC", getBC());
+        gpu.getScreen().setReg("DE", getDE());
+        gpu.getScreen().setReg("HL", getHL());
+        gpu.getScreen().setReg("SP", getSP());
+        gpu.getScreen().setReg("PC", getPC());
+        gpu.getScreen().setReg("scx", getScy());
+        gpu.getScreen().setReg("scy", getScx());
     }
 
     public void loadCart(Cartridge cart) {
@@ -54,12 +61,8 @@ public class CPU {
         memory.writeByte(address, b);
     }
 
-    public void pushSP() {
-
-    }
-
     public int getFlag(Flags flag) {
-        byte F = AF.getLow();
+        byte F = getAF().getLow();
         switch(flag) {
             case ZERO:
                 return (F >>> 7) & 1; // 7th bit
@@ -71,25 +74,25 @@ public class CPU {
     }
 
     public void setFlag(Flags flag) {
-        int F = AF.getLow();
+        int F = getAF().getLow();
         switch(flag) {
             case ZERO:
                 F |= 1 << 7; // 7th bit
             case CARRY:
                 F |= 1 << 4; // 4th bit
         }
-        AF.setLow((byte) (F & 0xFF));
+        getAF().setLow((byte) (F & 0xFF));
     }
 
     public void unsetFlag(Flags flag) {
-        int F = AF.getLow();
+        int F = getAF().getLow();
         switch(flag) {
             case ZERO:
                 F &= ~(1 << 7); // 7th bit
             case CARRY:
                 F &= ~(1 << 4); // 4th bit
         }
-        AF.setLow((byte) (F & 0xFF));
+        getAF().setLow((byte) (F & 0xFF));
     }
 
     public byte readByte(int address) {
@@ -101,24 +104,16 @@ public class CPU {
     }
 
     public void step() {
-        byte opcode = memory.readByte(PC.intValue());
+        byte opcode = memory.readByte(getPC().intValue());
         //Log.i("Opcode", Integer.toHexString(opcode));
         //Log.i("PC", Integer.toHexString(PC.intValue()));
-        PC.inc();
+        getPC().inc();
         Runnable code = opcodes.fetch(opcode);
         if(code != null)
             code.run();
         code = null;
-        scx.set((short) gpu.scx);
-        scy.set((short) gpu.scy);
-        gpu.getScreen().setReg("AF", AF);
-        gpu.getScreen().setReg("BC", BC);
-        gpu.getScreen().setReg("DE", DE);
-        gpu.getScreen().setReg("HL", HL);
-        gpu.getScreen().setReg("SP", SP);
-        gpu.getScreen().setReg("PC", PC);
-        gpu.getScreen().setReg("scx", scy);
-        gpu.getScreen().setReg("scy", scx);
+        getScx().set((short) gpu.scx);
+        getScy().set((short) gpu.scy);
     }
 
     public void requestInterrupt(InterruptType iType) {
@@ -139,4 +134,69 @@ public class CPU {
     public String getGameTitle() {
         return cart.getTitle();
     }
+
+    public Register16Bit getAF() {
+        return AF;
+    }
+
+    public void setAF(Register16Bit AF) {
+        this.AF = AF;
+    }
+
+    public Register16Bit getBC() {
+        return BC;
+    }
+
+    public void setBC(Register16Bit BC) {
+        this.BC = BC;
+    }
+
+    public Register16Bit getDE() {
+        return DE;
+    }
+
+    public void setDE(Register16Bit DE) {
+        this.DE = DE;
+    }
+
+    public Register16Bit getHL() {
+        return HL;
+    }
+
+    public void setHL(Register16Bit HL) {
+        this.HL = HL;
+    }
+
+    public Register16Bit getSP() {
+        return SP;
+    }
+
+    public void setSP(Register16Bit SP) {
+        this.SP = SP;
+    }
+
+    public Register16Bit getPC() {
+        return PC;
+    }
+
+    public void setPC(Register16Bit PC) {
+        this.PC = PC;
+    }
+
+    public Register16Bit getScx() {
+        return scx;
+    }
+
+    public void setScx(Register16Bit scx) {
+        this.scx = scx;
+    }
+
+    public Register16Bit getScy() {
+        return scy;
+    }
+
+    public void setScy(Register16Bit scy) {
+        this.scy = scy;
+    }
+
 }
