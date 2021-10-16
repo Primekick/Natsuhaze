@@ -8,12 +8,12 @@ public class CPU {
     private Memory memory;
     private Opcodes opcodes;
 
-    private Register16Bit AF; // Accumulator & Flags
-    private Register16Bit BC; // reg B + C
-    private Register16Bit DE; // reg D + E
-    private Register16Bit HL; // reg H + L
-    private Register16Bit SP; // Stack Pointer
-    private Register16Bit PC; // Program Counter/Pointer
+    public Register16Bit AF; // Accumulator & Flags
+    public Register16Bit BC; // reg B + C
+    public Register16Bit DE; // reg D + E
+    public Register16Bit HL; // reg H + L
+    public Register16Bit SP; // Stack Pointer
+    public Register16Bit PC; // Program Counter/Pointer
 
     private Register16Bit scx;
     private Register16Bit scy;

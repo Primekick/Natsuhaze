@@ -66,6 +66,21 @@ public class Opcodes {
 
         opcode.put((byte) 0x07, () -> {
             // RLCA
+            byte A = cpu.AF.getHigh();
+            int msb  = (A >>> 7) & 1;
+            A = (byte) (((A << 1) | msb) & 0xff);
+
+            if(msb > 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            if(A == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+            cpu.AF.setHigh(A);
         });
 
         opcode.put((byte) 0x08, () -> {
@@ -128,6 +143,23 @@ public class Opcodes {
 
         opcode.put((byte) 0x0F, () -> {
             // RRCA
+            byte A = cpu.AF.getHigh();
+            int msb  = A & 0b00000001;
+            int newMsb = msb << 7;
+            A = (byte) ((A >> 1) & 0b01111111);
+            A = (byte) (A | newMsb);
+
+            if(msb > 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            if(A == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+            cpu.AF.setHigh(A);
         });
 
         opcode.put((byte) 0x10, () -> {
@@ -262,7 +294,24 @@ public class Opcodes {
 
         opcode.put((byte) 0x1F, () -> {
             // RRA
+            byte A = cpu.AF.getHigh();
+            int msb  = A & 0b00000001;
+            int carry = cpu.getFlag(CPU.Flags.CARRY);
+            carry = (byte) carry << 7;
+            A = (byte) ((A >> 1) & 0b01111111);
+            A = (byte) (A | carry);
 
+            if(msb > 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            if(A == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+            cpu.AF.setHigh(A);
         });
 
         opcode.put((byte) 0x20, () -> {
