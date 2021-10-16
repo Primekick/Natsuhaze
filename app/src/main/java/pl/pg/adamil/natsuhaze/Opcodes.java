@@ -234,8 +234,6 @@ public class Opcodes {
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-
-            
             cpu.AF.setHigh(A);
         });
 
@@ -503,7 +501,9 @@ public class Opcodes {
         });
 
         opcode.put((byte) 0x37, () -> {
-            // SCF
+            // SCF set carry flag, hc needed
+            cpu.setFlag(CPU.Flags.CARRY);
+
         });
 
         opcode.put((byte) 0x38, () -> {
@@ -564,8 +564,13 @@ public class Opcodes {
         });
 
         opcode.put((byte) 0x3F, () -> {
-            // CCF
-
+            // CCF carry flag in the flags register is inverted, hc needed
+            int carry = cpu.getFlag(CPU.Flags.CARRY);
+            if(carry == 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
         });
 
         opcode.put((byte) 0x40, () -> {
