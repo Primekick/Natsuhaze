@@ -8,12 +8,12 @@ public class CPU {
     private Memory memory;
     private Opcodes opcodes;
 
-    private Register16Bit AF; // Accumulator & Flags
-    private Register16Bit BC; // reg B + C
-    private Register16Bit DE; // reg D + E
-    private Register16Bit HL; // reg H + L
-    private Register16Bit SP; // Stack Pointer
-    private Register16Bit PC; // Program Counter/Pointer
+    public Register16Bit AF; // Accumulator & Flags
+    public Register16Bit BC; // reg B + C
+    public Register16Bit DE; // reg D + E
+    public Register16Bit HL; // reg H + L
+    public Register16Bit SP; // Stack Pointer
+    public Register16Bit PC; // Program Counter/Pointer
 
     private Register16Bit scx;
     private Register16Bit scy;
@@ -66,6 +66,10 @@ public class CPU {
         switch(flag) {
             case ZERO:
                 return (F >>> 7) & 1; // 7th bit
+            case ADDSUB:
+                return (F >>> 6) & 1; // 6th bit
+            case HALFCARRY:
+                return (F >>> 5) & 1; // 5th bit
             case CARRY:
                 return (F >>> 4) & 1; // 4th bit
             default:
@@ -78,6 +82,10 @@ public class CPU {
         switch(flag) {
             case ZERO:
                 F |= 1 << 7; // 7th bit
+            case ADDSUB:
+                F |= 1 << 6; // 6th bit
+            case HALFCARRY:
+                F |= 1 << 5; // 5th bit
             case CARRY:
                 F |= 1 << 4; // 4th bit
         }
@@ -89,6 +97,10 @@ public class CPU {
         switch(flag) {
             case ZERO:
                 F &= ~(1 << 7); // 7th bit
+            case ADDSUB:
+                F &= ~(1 << 6); // 6th bit
+            case HALFCARRY:
+                F |= ~(1 << 5); // 5th bit
             case CARRY:
                 F &= ~(1 << 4); // 4th bit
         }

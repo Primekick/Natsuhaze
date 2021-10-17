@@ -66,6 +66,21 @@ public class Opcodes {
 
         opcode.put((byte) 0x07, () -> {
             // RLCA
+            byte A = cpu.AF.getHigh();
+            int msb  = (A >>> 7) & 1;
+            A = (byte) (((A << 1) | msb) & 0xff);
+
+            if(msb > 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            if(A == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+            cpu.AF.setHigh(A);
         });
 
         opcode.put((byte) 0x08, () -> {
@@ -128,6 +143,23 @@ public class Opcodes {
 
         opcode.put((byte) 0x0F, () -> {
             // RRCA
+            byte A = cpu.AF.getHigh();
+            int msb  = A & 0b00000001;
+            int newMsb = msb << 7;
+            A = (byte) ((A >> 1) & 0b01111111);
+            A = (byte) (A | newMsb);
+
+            if(msb > 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            if(A == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+            cpu.AF.setHigh(A);
         });
 
         opcode.put((byte) 0x10, () -> {
@@ -202,8 +234,6 @@ public class Opcodes {
             } else {
                 cpu.unsetFlag(CPU.Flags.ZERO);
             }
-
-            
             cpu.AF.setHigh(A);
         });
 
@@ -262,7 +292,24 @@ public class Opcodes {
 
         opcode.put((byte) 0x1F, () -> {
             // RRA
+            byte A = cpu.AF.getHigh();
+            int msb  = A & 0b00000001;
+            int carry = cpu.getFlag(CPU.Flags.CARRY);
+            carry = (byte) carry << 7;
+            A = (byte) ((A >> 1) & 0b01111111);
+            A = (byte) (A | carry);
 
+            if(msb > 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            if(A == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+            cpu.AF.setHigh(A);
         });
 
         opcode.put((byte) 0x20, () -> {
@@ -328,6 +375,31 @@ public class Opcodes {
 
         opcode.put((byte) 0x27, () -> {
             // DAA
+            int A = cpu.AF.getHigh();
+            if (cpu.getFlag(CPU.Flags.ADDSUB) == 0) {
+                if ((cpu.getFlag(CPU.Flags.HALFCARRY) > 1 ) || ((A & 0xF) > 9)) {
+                    A += 0x06;
+                }
+                if ((cpu.getFlag(CPU.Flags.CARRY) > 1 ) || (A > 0x9F)) {
+                    A += 0x60;
+                    cpu.setFlag(CPU.Flags.CARRY);
+                }
+            } else {
+                if (cpu.getFlag(CPU.Flags.HALFCARRY) > 1 ) {
+                    A = (A - 6) & 0xFF;
+                }
+                if (cpu.getFlag(CPU.Flags.CARRY) > 1 ) {
+                    A -= 0x60;
+                }
+            }
+            cpu.unsetFlag(CPU.Flags.HALFCARRY);
+            if ((A & 0xFF) == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
+
+            cpu.AF.setHigh((byte) A);
         });
 
         opcode.put((byte) 0x28, () -> {
@@ -389,7 +461,9 @@ public class Opcodes {
 
         opcode.put((byte) 0x2F, () -> {
             // CPL
-
+            cpu.AF.setHigh((byte) (~cpu.AF.getHigh()));
+            cpu.setFlag(CPU.Flags.ADDSUB);
+            cpu.setFlag(CPU.Flags.HALFCARRY);
         });
 
         opcode.put((byte) 0x30, () -> {
@@ -455,6 +529,9 @@ public class Opcodes {
 
         opcode.put((byte) 0x37, () -> {
             // SCF
+            cpu.setFlag(CPU.Flags.CARRY);
+            cpu.unsetFlag(CPU.Flags.HALFCARRY);
+            cpu.unsetFlag(CPU.Flags.ADDSUB);
         });
 
         opcode.put((byte) 0x38, () -> {
@@ -516,7 +593,14 @@ public class Opcodes {
 
         opcode.put((byte) 0x3F, () -> {
             // CCF
-
+            int carry = cpu.getFlag(CPU.Flags.CARRY);
+            if(carry == 0) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
+            cpu.unsetFlag(CPU.Flags.HALFCARRY);
+            cpu.unsetFlag(CPU.Flags.ADDSUB);
         });
 
         opcode.put((byte) 0x40, () -> {
@@ -791,7 +875,7 @@ public class Opcodes {
 
         opcode.put((byte) 0x76, () -> {
             // HALT
-
+            // TODO - two nop???
         });
 
         opcode.put((byte) 0x77, () -> {
