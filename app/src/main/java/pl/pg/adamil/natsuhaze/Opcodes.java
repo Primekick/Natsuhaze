@@ -375,6 +375,11 @@ public class Opcodes {
 
         opcode.put((byte) 0x27, () -> {
             // DAA
+            int A = cpu.AF.getHigh();
+
+            
+
+            cpu.AF.setHigh((byte) A);
         });
 
         opcode.put((byte) 0x28, () -> {
@@ -437,10 +442,8 @@ public class Opcodes {
         opcode.put((byte) 0x2F, () -> {
             // CPL
             cpu.AF.setHigh((byte) (~cpu.AF.getHigh()));
-            //cpu.setFlag(CPU.Flags.N);
+            cpu.setFlag(CPU.Flags.ADDSUB);
             cpu.setFlag(CPU.Flags.HALFCARRY);
-
-
         });
 
         opcode.put((byte) 0x30, () -> {
@@ -508,7 +511,7 @@ public class Opcodes {
             // SCF
             cpu.setFlag(CPU.Flags.CARRY);
             cpu.unsetFlag(CPU.Flags.HALFCARRY);
-            //cpu.unsetFlag(CPU.Flags.N);
+            cpu.unsetFlag(CPU.Flags.ADDSUB);
         });
 
         opcode.put((byte) 0x38, () -> {
@@ -577,7 +580,7 @@ public class Opcodes {
                 cpu.unsetFlag(CPU.Flags.CARRY);
             }
             cpu.unsetFlag(CPU.Flags.HALFCARRY);
-            //cpu.unsetFlag(CPU.Flags.N);
+            cpu.unsetFlag(CPU.Flags.ADDSUB);
         });
 
         opcode.put((byte) 0x40, () -> {
@@ -852,7 +855,7 @@ public class Opcodes {
 
         opcode.put((byte) 0x76, () -> {
             // HALT
-
+            // TODO - two nop???
         });
 
         opcode.put((byte) 0x77, () -> {

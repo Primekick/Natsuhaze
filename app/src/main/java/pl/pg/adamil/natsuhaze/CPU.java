@@ -66,6 +66,8 @@ public class CPU {
         switch(flag) {
             case ZERO:
                 return (F >>> 7) & 1; // 7th bit
+            case ADDSUB:
+                return (F >>> 6) & 1; // 6th bit
             case HALFCARRY:
                 return (F >>> 5) & 1; // 5th bit
             case CARRY:
@@ -80,6 +82,8 @@ public class CPU {
         switch(flag) {
             case ZERO:
                 F |= 1 << 7; // 7th bit
+            case ADDSUB:
+                F |= 1 << 6; // 6th bit
             case HALFCARRY:
                 F |= 1 << 5; // 5th bit
             case CARRY:
@@ -93,6 +97,8 @@ public class CPU {
         switch(flag) {
             case ZERO:
                 F &= ~(1 << 7); // 7th bit
+            case ADDSUB:
+                F &= ~(1 << 6); // 6th bit
             case HALFCARRY:
                 F |= ~(1 << 5); // 5th bit
             case CARRY:
