@@ -376,8 +376,28 @@ public class Opcodes {
         opcode.put((byte) 0x27, () -> {
             // DAA
             int A = cpu.AF.getHigh();
-
-            
+            if (cpu.getFlag(CPU.Flags.ADDSUB) == 0) {
+                if ((cpu.getFlag(CPU.Flags.HALFCARRY) > 1 ) || ((A & 0xF) > 9)) {
+                    A += 0x06;
+                }
+                if ((cpu.getFlag(CPU.Flags.CARRY) > 1 ) || (A > 0x9F)) {
+                    A += 0x60;
+                    cpu.setFlag(CPU.Flags.CARRY);
+                }
+            } else {
+                if (cpu.getFlag(CPU.Flags.HALFCARRY) > 1 ) {
+                    A = (A - 6) & 0xFF;
+                }
+                if (cpu.getFlag(CPU.Flags.CARRY) > 1 ) {
+                    A -= 0x60;
+                }
+            }
+            cpu.unsetFlag(CPU.Flags.HALFCARRY);
+            if ((A & 0xFF) == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
 
             cpu.AF.setHigh((byte) A);
         });
