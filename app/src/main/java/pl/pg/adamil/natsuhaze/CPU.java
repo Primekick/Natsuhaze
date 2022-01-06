@@ -120,10 +120,9 @@ public class CPU {
         //Log.i("Opcode", Integer.toHexString(opcode));
         //Log.i("PC", Integer.toHexString(PC.intValue()));
         getPC().inc();
-        Runnable code = opcodes.fetch(opcode);
+        Opcode code = opcodes.fetch(opcode);
         if(code != null)
-            code.run();
-        code = null;
+            code.execute();
         getScx().set((short) gpu.scx);
         getScy().set((short) gpu.scy);
     }

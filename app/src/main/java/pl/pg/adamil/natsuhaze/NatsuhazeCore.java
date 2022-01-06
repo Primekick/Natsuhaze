@@ -91,7 +91,7 @@ public class NatsuhazeCore {
             }
             if(!isPaused && cart.isCartLoaded()) {
                 cpu.step();
-                gpu.step(4);
+                gpu.step(1);
                 try {
                     Thread.sleep(0);
                 } catch (InterruptedException e) {

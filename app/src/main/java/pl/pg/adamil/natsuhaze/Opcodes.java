@@ -3,14 +3,112 @@ package pl.pg.adamil.natsuhaze;
 import java.util.HashMap;
 
 public class Opcodes {
-    private HashMap<Byte, Runnable> opcode = new HashMap<Byte, Runnable>();
+    private HashMap<Byte, Opcode> opcode = new HashMap<Byte, Opcode>();
+    private HashMap<Byte, Opcode> opcodeCB = new HashMap<Byte, Opcode>();
     private CPU cpu;
 
     public Opcodes(CPU cpu) {
         this.cpu = cpu;
     }
 
+    public void RLC(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void RRC(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void RL(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void RR(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void SLA(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void SRA(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void SWAP(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void SRL(Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void BIT(int bit, Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void SET(int bit, Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void RES(int bit, Register16Bit register, boolean isHigh) {
+
+    }
+
+    public void RLC(int address) {
+
+    }
+
+    public void RRC(int address) {
+
+    }
+
+    public void RL(int address) {
+
+    }
+
+    public void RR(int address) {
+
+    }
+
+    public void SLA(int address) {
+
+    }
+
+    public void SRA(int address) {
+
+    }
+
+    public void SWAP(int address) {
+
+    }
+
+    public void SRL(int address) {
+
+    }
+
+    public void BIT(int bit, int address) {
+
+    }
+
+    public void SET(int bit, int address) {
+
+    }
+
+    public void RES(int bit, int address) {
+
+    }
+
     public void init() {
+        initRegular();
+        initCB();
+    }
+
+    public void initCB() {
+
+    }
+
+    public void initRegular() {
         opcode.put((byte) 0x00, () -> {
             // NOP
         });
@@ -212,7 +310,7 @@ public class Opcodes {
 
         opcode.put((byte) 0x16, () -> {
             // LD D, u8
-            cpu.DE.setHigh(cpu.readByte(cpu.PC.intValue() & 0xFFFF));
+            cpu.DE.setHigh((byte) (cpu.readByte(cpu.PC.intValue() & 0xFFFF)& 0xFF));
             cpu.PC.inc();
         });
 
@@ -239,7 +337,7 @@ public class Opcodes {
 
         opcode.put((byte) 0x18, () -> {
             // JR, i8
-            byte i8 = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+            byte i8 = (byte) (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
             cpu.PC.inc();
             cpu.PC.set((short) (cpu.PC.shortValue() + i8));
         });
@@ -317,7 +415,7 @@ public class Opcodes {
             if(cpu.getFlag(CPU.Flags.ZERO) > 0) {
                 cpu.PC.inc();
             } else {
-                byte i8 = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+                byte i8 = (byte) (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
                 cpu.PC.inc();
                 cpu.PC.set((short) (cpu.PC.shortValue() + i8));
             }
@@ -407,7 +505,7 @@ public class Opcodes {
             if(cpu.getFlag(CPU.Flags.ZERO) == 0) {
                 cpu.PC.inc();
             } else {
-                byte i8 = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+                byte i8 = (byte) (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
                 cpu.PC.inc();
                 cpu.PC.set((short) (cpu.PC.shortValue() + i8));
             }
@@ -471,7 +569,7 @@ public class Opcodes {
             if(cpu.getFlag(CPU.Flags.CARRY) > 0) {
                 cpu.PC.inc();
             } else {
-                byte i8 = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+                byte i8 = (byte) (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
                 cpu.PC.inc();
                 cpu.PC.set((short) (cpu.PC.shortValue() + i8));
             }
@@ -487,7 +585,7 @@ public class Opcodes {
 
         opcode.put((byte) 0x32, () -> {
             // LD (HL-),A
-            cpu.writeByte(cpu.HL.intValue() & 0xFFFF & 0xFFFF, cpu.AF.getHigh());
+            cpu.writeByte(cpu.HL.intValue() & 0xFFFF, cpu.AF.getHigh());
             cpu.HL.dec();
         });
 
@@ -1994,7 +2092,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xC6, () -> {
             // ADD A,u8
-            int A = cpu.AF.getHigh() + cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+            int A = cpu.AF.getHigh() + (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
             cpu.PC.inc();
             
             if (A != (A & 0xFF)) { // overflow
@@ -2061,6 +2159,7 @@ public class Opcodes {
         opcode.put((byte) 0xCB, () -> {
             // PREFIX CB
             // TODO
+            cpu.getPC().inc();
         });
 
         opcode.put((byte) 0xCC, () -> {
@@ -2102,7 +2201,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xCE, () -> {
             // ADC A,u8
-            int A = cpu.AF.getHigh() + cpu.readByte(cpu.PC.intValue() & 0xFFFF) + cpu.getFlag(CPU.Flags.CARRY);
+            int A = cpu.AF.getHigh() + (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF) + cpu.getFlag(CPU.Flags.CARRY);
             cpu.PC.inc();
             
             if (A != (A & 0xFF)) { // overflow
@@ -2203,7 +2302,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xD6, () -> {
             // SUB A,u8
-            int A = cpu.AF.getHigh() - cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+            int A = cpu.AF.getHigh() - (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
             cpu.PC.inc();
             
             if (A != (A & 0xFF)) {
@@ -2328,7 +2427,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xE0, () -> {
             // LD (FF00+u8),A
-            int address = 0xFF00 + cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+            int address = 0xFF00 | (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
             cpu.PC.inc();
             cpu.writeByte(address, cpu.AF.getHigh());
         });
@@ -2345,7 +2444,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xE2, () -> {
             // LD (FF00+C),A
-            int address = 0xFF00 + cpu.PC.getLow();
+            int address = 0xFF00 | cpu.PC.getLow();
             cpu.writeByte(address, cpu.AF.getHigh());
         });
 
@@ -2393,11 +2492,16 @@ public class Opcodes {
 
         opcode.put((byte) 0xE8, () -> {
             // ADD SP, i8
+            short temp = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.SP.add((short) (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0x00FF));
             cpu.PC.inc();
 
             cpu.unsetFlag(CPU.Flags.ZERO);
-            
+            if (cpu.getSP().shortValue() != (temp & 0xFFFF)) {
+                cpu.setFlag(CPU.Flags.CARRY);
+            } else {
+                cpu.unsetFlag(CPU.Flags.CARRY);
+            }
         });
 
         opcode.put((byte) 0xE9, () -> {
@@ -2412,7 +2516,7 @@ public class Opcodes {
             cpu.PC.inc();
             byte high = cpu.readByte(cpu.PC.intValue() & 0xFFFF);
             cpu.PC.inc();
-            int address = ((high << 8)  + (low & 0x00FF)) & 0xFFFF;
+            int address = ((high << 8) | (low & 0x00FF)) & 0xFFFF;
             cpu.writeByte(address, cpu.AF.getHigh());
         });
 
@@ -2454,7 +2558,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xF0, () -> {
             // LD A,(FF00+u8)
-            int address = 0xFF00 + (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
+            int address = 0xFF00 | (cpu.readByte(cpu.PC.intValue() & 0xFFFF) & 0xFF);
             byte A = cpu.readByte(address);
             cpu.PC.inc();
             cpu.AF.setHigh(A);
@@ -2472,7 +2576,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xF2, () -> {
             // LD A,(FF00+C)
-            byte A = cpu.readByte(0xFF00 + cpu.BC.getLow() & 0xFF);
+            byte A = cpu.readByte(0xFF00 | (cpu.BC.getLow() & 0xFF));
             cpu.AF.setHigh(A);
         });
 
@@ -2526,6 +2630,11 @@ public class Opcodes {
             cpu.HL.set(SP);
 
             cpu.unsetFlag(CPU.Flags.ZERO);
+            if ((cpu.getHL().shortValue() & 0xFFFF) == 0) {
+                cpu.setFlag(CPU.Flags.ZERO);
+            } else {
+                cpu.unsetFlag(CPU.Flags.ZERO);
+            }
         });
 
         opcode.put((byte) 0xF9, () -> {
@@ -2539,7 +2648,7 @@ public class Opcodes {
             cpu.PC.inc();
             int high = cpu.readByte(cpu.PC.intValue() & 0xFFFF) << 8;
             cpu.PC.inc();
-            byte A = cpu.readByte((high + low) & 0xFFFF);
+            byte A = cpu.readByte((high | low) & 0xFFFF);
             cpu.AF.setHigh(A);
         });
 
@@ -2558,7 +2667,7 @@ public class Opcodes {
 
         opcode.put((byte) 0xFE, () -> {
             // CP A,u8
-            int A = cpu.AF.getHigh() - cpu.readByte(cpu.PC.intValue() & 0xFFFF);
+            int A = (cpu.AF.getHigh() - cpu.readByte(cpu.PC.intValue() & 0xFFFF)) & 0xFF;
             cpu.PC.inc();
             
             if (A != (A & 0xFF)) {
@@ -2585,7 +2694,7 @@ public class Opcodes {
         });
     }
 
-    public Runnable fetch(byte code) {
+    public Opcode fetch(byte code) {
         return opcode.get(code);
     }
 }

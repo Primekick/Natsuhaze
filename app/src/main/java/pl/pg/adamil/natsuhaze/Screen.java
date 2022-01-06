@@ -28,11 +28,15 @@ public class Screen extends SurfaceView implements SurfaceHolder.Callback {
     private int screenMultiplier;
     private String text;
     private HashMap<String, Register16Bit> regs;
+    private Paint bg;
 
     public Screen(Context context) {
         super(context);
         this.context = context;
         data = new byte[144][160];
+        bg = new Paint();
+        bg.setColor(Color.YELLOW);
+        bg.setStyle(Paint.Style.FILL);
         for(byte[] row: data){
             Arrays.fill(row, (byte) 0);
         }
@@ -89,6 +93,7 @@ public class Screen extends SurfaceView implements SurfaceHolder.Callback {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if(started) {
+            canvas.drawPaint(bg);
             int width = Resources.getSystem().getDisplayMetrics().widthPixels;
             int height = Resources.getSystem().getDisplayMetrics().heightPixels;
             if(canvas != null) {

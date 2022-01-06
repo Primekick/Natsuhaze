@@ -8,9 +8,9 @@ android {
 
     defaultConfig {
         applicationId "pl.pg.adamil.natsuhaze"
-        minSdkVersion 23
+        minSdkVersion 24
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
 

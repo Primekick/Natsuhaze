@@ -1,6 +1,9 @@
 package pl.pg.adamil.natsuhaze;
 
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.util.HashMap;
 
@@ -16,19 +19,11 @@ public class TileMap {
         }
     }
 
-    public int getTileNumber(int num) {
+    public int getTileNumber(int num) throws Exception {
         return tiles.get(num);
     }
 
-    public boolean isMapOne() {
-        return isMapOne;
-    }
-
     public void update(int tileN, byte b) {
-        if(isMapOne){
-            tiles.put(tileN, b & 0xFF);
-        } else {
-            tiles.put(tileN, Integer.valueOf(b));
-        }
+        tiles.put(tileN, b & 0xFF);
     }
 }

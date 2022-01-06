@@ -1,6 +1,9 @@
 package pl.pg.adamil.natsuhaze;
 
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.util.Arrays;
 import java.math.*;
@@ -18,8 +21,9 @@ public class GPU {
     public int scx;
     public int scy;
 
-    private byte controlRegister;
-    private byte statusRegister;
+    private int controlRegister;
+    private int statusRegister;
+    private int dmaRegister;
 
     private boolean bgmap;
 
@@ -47,8 +51,9 @@ public class GPU {
         clock = 0;
         line = 0;
 
-        controlRegister = (byte) 0x91;
+        controlRegister = 0x91;
         statusRegister = 0;
+        dmaRegister = 0;
         tileBuffer = new byte[16];
         oam = new byte[160];
         vram = new byte[8 * 1024];
@@ -90,33 +95,39 @@ public class GPU {
     public byte read(int address) {
         switch(address){
             case 0x00: // LCD + GPU control
-                return controlRegister;
+                return (byte) (controlRegister & 0xFF);
             case 0x01: // LCD + GPU status
-                return statusRegister;
+                return (byte) (statusRegister & 0xFF);
             case 0x02: // scroll Y
-                return (byte) scy;
+                return (byte) (scy & 0xFF);
             case 0x03: // scroll X
-                return (byte) scx;
+                return (byte) (scx & 0xFF);
             case 0x04: // current scanline
-                return (byte) line;
+                return (byte) (line & 0xFF);
+            case 0x06:
+                return (byte) (dmaRegister & 0xFF);
             default:
                 return 0;
         }
     }
 
     public void write(int address, byte b) {
+
         switch (address) {
             case 0x00: // LCD + GPU control
-                controlRegister = b;
+                controlRegister = b & 0xFF;
                 break;
             case 0x01: // LCD + GPU status
-                statusRegister = b;
+                statusRegister = b & 0xFF;
                 break;
             case 0x02: // scroll Y
-                scy = b;
+                scy = b & 0xFF;
                 break;
             case 0x03: // scroll X
-                scx = b;
+                scx = b & 0xFF;
+                break;
+            case 0x06: // DMA transfer
+                dmaRegister = b & 0xFF;
                 break;
             case 0x07: // background palette
                 break;
@@ -129,49 +140,65 @@ public class GPU {
         TileMap tileMap = tilemapNum == 1 ? tilemap1 : tilemap0;
         Tileset tileset = tilesetNum == 1 ? tileset1 : tileset0;
 
-        int tileLine = (((line + scy) / 8) * 32);
-        int tileRow = scx / 8;
-        int x = scx % 8;
-        int y = (line + scy) & 0b00000111;
-        int tileN = tileMap.getTileNumber(tileLine + tileRow);
+        int tileLine = ((((line + scy) & 0xFF) >>> 3) * 32);
+        int tileRow = (scx % 256) / 8;
+        int x = (scx % 256) % 8;
+        int y = ((line + scy) % 256) % 8;
+        int tileN = 0;
+        try {
+            tileN = tileMap.getTileNumber(tileLine + tileRow);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         Tile tile = tileset.getTile(tileN);
+        Arrays.fill(buffer, (byte) 0);
         for (int pixel = 0; pixel < 160; pixel++) {
             try {
                 buffer[pixel] = tile.getPixel(x, y);
-            } catch(NullPointerException e) {
-                Log.i("Error loading tile", "Tile line: " + tileLine + ", tileRow: " + tileRow + ", tileset: " + tilesetNum + ", tilemap: " + tilemapNum + ", tileN: " + tileN);
+            } catch(Exception e) {
+                Log.i("Error loading tile", "Tile line: " + tileLine + ", tileRow: " + tileRow + ", tileset: " + tilesetNum + ", tilemap: " + tilemapNum + ", tileXY: " + x + "|" + y);
             }
             x++;
             if(x == 8) {
                 tileRow = (tileRow + 1) % 32;
-                tile = tileset.getTile(tileMap.getTileNumber(tileLine + tileRow));
+                try {
+                    tile = tileset.getTile(tileMap.getTileNumber(tileLine + tileRow));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.i("Line", line + " | " + scy);
+                }
                 x = 0;
             }
         }
         frame[line] = buffer.clone();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     public void drawFrame() {
         screen.setData(frame);
+        //Arrays.stream(frame).forEach(row -> Arrays.fill(row, (byte) 0));
     }
 
     public byte readVram(int address) {
-        return vram[address];
+        if(mode == GPUmode.VRAM)
+            return (byte) 0xFF;
+        else
+            return vram[address];
     }
 
     public void updateTileset(Tileset tileset, boolean isOne, int address) {
         int tileN;
+        address = address & 0xFFFF;
+        tileN = address >>> 4;
         if(isOne) {
-            tileN = address / 0x10;
             for (int i = 0; i < 8; i++) {
                 tileBuffer[2 * i] = vram[tileN * 0x10 + 2 * i];
                 tileBuffer[2 * i + 1] = vram[tileN * 0x10 + 2 * i + 1];
             }
         } else {
-            tileN = (int) Math.floor((address - 0x1000) >> 4);
             for (int i = 0; i < 8; i++) {
-                tileBuffer[2 * i] = vram[0x1000 + tileN * 16 + 2 * i];
-                tileBuffer[2 * i + 1] = vram[0x1000 + tileN * 16 + 2 * i + 1];
+                tileBuffer[2 * i] = vram[0x0800 + tileN * 0x10 + 2 * i];
+                tileBuffer[2 * i + 1] = vram[0x0800 + tileN * 0x10 + 2 * i + 1];
             }
         }
         tileset.updateTile(tileN, tileBuffer);
@@ -182,22 +209,25 @@ public class GPU {
     }
 
     public void writeVram(int address, byte b) {
-        vram[address] = b;
-        //tileset 1
-        if(address < 0x0FFF) {
-            updateTileset(tileset1, true, address);
-        }
-        //tileset 0
-        if (address > 0x0800 && address < 0x17FF) {
-            updateTileset(tileset0, false, address);
-        }
-        //tilemap 0
-        if (address >= 0x1800 && address < 0x1C00) {
-            updateTilemap(tilemap0, address - 0x1800, b);
-        }
-        //tilemap 1
-        if (address >= 0x1C00) {
-            updateTilemap(tilemap1, address - 0x1C00, b);
+        if(mode != GPUmode.VRAM) {
+            address = address & 0xFFFF;
+            vram[address] = b;
+            //tileset 1
+            if (address < 0x1000) {
+                updateTileset(tileset1, true, address);
+            }
+            //tileset 0
+            if (address >= 0x0800 && address < 0x1800) {
+                updateTileset(tileset0, false, address - 0x0800);
+            }
+            //tilemap 0
+            if (address >= 0x1800 && address < 0x1C00) {
+                updateTilemap(tilemap0, address - 0x1800, b);
+            }
+            //tilemap 1
+            if (address >= 0x1C00) {
+                updateTilemap(tilemap1, address - 0x1C00, b);
+            }
         }
     }
 
