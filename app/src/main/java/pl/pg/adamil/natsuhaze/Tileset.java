@@ -15,7 +15,7 @@ public class Tileset {
         isTilesetOne = isOne;
         tiles = new HashMap<Integer, Tile>();
 
-        int tileN = 0;
+        int tileN = isTilesetOne ? 0 : 128;
         int startAddress = isTilesetOne ? 0x0000 : 0x0800;
         for (int i = 0; i < 256; i++) {
             byte[] tileBytes = new byte[16];
@@ -23,7 +23,7 @@ public class Tileset {
             for (int j = 0; j < 16; j++) {
                 tileBytes[j] = vram[tileAddress + j];
             }
-            tiles.put(tileN, new Tile(tileBytes));
+            tiles.put(tileN < 256 ? tileN : tileN - 256, new Tile(tileBytes));
             tileN++;
         }
     }
